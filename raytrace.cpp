@@ -6,6 +6,7 @@
 #include <QPoint>
 #include <QtDebug>
 #include <QtMath>
+#include <QThread>
 
 RayTrace::RayTrace(QObject *parent)
     : QObject{parent}
@@ -13,52 +14,79 @@ RayTrace::RayTrace(QObject *parent)
 
 }
 
-void RayTrace::start(QImage * img, QPoint pos)
+const QPoint NOT_FOUND = QPoint(-1,-1);
+
+
+void RayTrace::start(QImage * img, QPoint startPoint, bool recursion)
 {
-    qDebug() << "starting raycast" << pos;
+    qDebug() << "starting raycast" << startPoint;
     this->image = img;
 
 
    // gbham(pos, pos + QPointF(30,25).toPoint());
    // gbham(pos, pos + QPointF(20,50).toPoint());
 
-    bool DEBUG_RAY_DRAWING = true;
-    bool DEBUG_POLYGON_DRAWING = false;
+    bool DEBUG_RAY_DRAWING = false;
+    bool DEBUG_POLYGON_DRAWING = true;
 
-    QPoint nextResultPoint;
+
+    QPoint lastResultPoint;
     int maxDistance = 200;
-    int previousManhattan = maxDistance;
+    int lastManhattan = maxDistance;
 
     QPolygon fillPolygon;
 
-    for (int var = 0; var < 360; var+=2) {
+    for (int i = 0; i < 360; i+=1) {
 
-        int minDistance = 10;
-        qreal sine = qSin(qDegreesToRadians((qreal)var));
-        qreal cosine = qCos(qDegreesToRadians((qreal)var));
 
-        int manhattan = nextResultPoint == /*not found*/ QPoint(-1, -1) ?previousManhattan :  (pos - nextResultPoint).manhattanLength();
-        previousManhattan = manhattan;
+        int minDistance = 5;
+        qreal sine = qSin(qDegreesToRadians((qreal)i));
+        qreal cosine = qCos(qDegreesToRadians((qreal)i));
 
-        int actualDistance = nextResultPoint.isNull() ? maxDistance : qBound(minDistance, manhattan+10, maxDistance);
 
-        qDebug() << "manhattan " <<  manhattan <<"actual: "<< actualDistance;
 
-        nextResultPoint = gbham(pos, pos + QPointF(sine*actualDistance,cosine*actualDistance).toPoint());
-
-        if(nextResultPoint != QPoint(-1,-1))
+        int manhattan = lastResultPoint == /*not found*/ QPoint(-1, -1) ?lastManhattan :  (startPoint - lastResultPoint).manhattanLength();
+        if(recursion && i > 2 && lastResultPoint != NOT_FOUND && qAbs(lastManhattan - manhattan) > 20)
         {
-            fillPolygon << nextResultPoint;
-        }
-        if(DEBUG_RAY_DRAWING)
-        {
-            if(nextResultPoint != QPoint(-1,-1))
+            QPoint beforeLastPoint = fillPolygon[fillPolygon.length()-2];
+            QPointF firstMidpoint = QPointF(startPoint+beforeLastPoint)/2.0;
+            QPoint center = ((beforeLastPoint+ firstMidpoint)/2.0).toPoint();
+
+            if((startPoint - center).manhattanLength() > 20)
             {
+                qDebug() << "center" << center << " start Point: " << startPoint << " lastResultPoint " << lastResultPoint;
+                QPainter paint(image);
+                paint.setPen(Qt::green);
+                paint.setBrush(Qt::green);
+                paint.drawEllipse(center,5,5);
+                paint.end();
+                start(img,center, false);
+            }
+
+
+        }
+
+        lastManhattan = manhattan;
+
+        int actualDistance = lastResultPoint.isNull() ? maxDistance : qBound(minDistance, manhattan+10, maxDistance);
+
+        //qDebug() << "manhattan " <<  manhattan <<"actual: "<< actualDistance;
+
+        lastResultPoint = gbham(startPoint, startPoint + QPointF(sine*actualDistance,cosine*actualDistance).toPoint());
+
+        if(lastResultPoint != NOT_FOUND)
+        {
+            fillPolygon << lastResultPoint;
+        }
+    }
+
+    if(DEBUG_RAY_DRAWING)
+    {
+        for (QPoint p: qAsConst(fillPolygon)) {
                 QPainter paint(image);
                 paint.setPen(Qt::red);
-                paint.drawLine(pos,nextResultPoint);
+                paint.drawLine(startPoint,p);
                 paint.end();
-            }
         }
 
     }
@@ -101,7 +129,7 @@ bool RayTrace::checkIfLineArt(int x, int y)
     QRgb color= image->pixel(x,y);
     QRgb colorWhite = qRgb(255,255,255);
 
-    return color != colorWhite && color != QColor(Qt::red).rgba();
+    return color != colorWhite && color != QColor(Qt::red).rgba() && color != QColor(Qt::green).rgba();
 
 }
 
@@ -151,7 +179,11 @@ QPoint RayTrace::gbham(int xstart, int ystart, int xend, int yend)
     x = xstart;
     y = ystart;
     err = deltafastdirection / 2;
-    if(checkIfLineArt(x,y)){
+    if(!image->valid(x,y))
+    {
+        return NOT_FOUND;
+    }
+    else if(checkIfLineArt(x,y)){
         return QPoint(x,y);
     }
     //setPixel(x,y);
@@ -176,13 +208,17 @@ QPoint RayTrace::gbham(int xstart, int ystart, int xend, int yend)
             x += pdx;
             y += pdy;
         }
-        if(checkIfLineArt(x,y)){
+        if(!image->valid(x,y))
+        {
+            return NOT_FOUND;
+        }
+        else if(checkIfLineArt(x,y)){
             return QPoint(x,y);
         }
         //setPixel(x, y);
 
     }
-    return QPoint(-1,-1);
+    return NOT_FOUND;
 }
 
 QPoint RayTrace::gbham(QPoint start, QPoint end)

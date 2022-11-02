@@ -12,7 +12,7 @@ public:
     explicit RayTrace(QObject *parent = nullptr);
 
 public slots:
-    void start(QImage *image, QPoint pos);
+    void start(QImage *image, QPoint pos, bool recursion);
 
 signals:
 
