@@ -1,6 +1,8 @@
 #ifndef RAYTRACE_H
 #define RAYTRACE_H
 
+#include "RayCastResult.h"
+
 #include <QImage>
 #include <QObject>
 #include <QPoint>
@@ -12,7 +14,9 @@ public:
     explicit RayTrace(QObject *parent = nullptr);
 
 public slots:
-    void start(QImage *image, QPoint pos, bool recursion);
+    RayCastResult start(QImage *image, QPoint startPoint, int recursionDepth);
+
+    void debugDrawResult(QImage * image, QPoint startPoint, const RayCastResult& result);
 
 signals:
 
@@ -21,6 +25,7 @@ private:
 
     QPoint gbham(QPoint start, QPoint end);
 
+    static int sgn(int x);
 
     void setPixel(int x, int y);
 

@@ -1,4 +1,5 @@
 #include "raytrace.h"
+#include "RayCastResult.h"
 
 #include <QImage>
 
@@ -17,26 +18,23 @@ RayTrace::RayTrace(QObject *parent)
 const QPoint NOT_FOUND = QPoint(-1,-1);
 
 
-void RayTrace::start(QImage * img, QPoint startPoint, bool recursion)
+RayCastResult RayTrace::start(QImage * img, QPoint startPoint, int recursionDepth)
 {
     qDebug() << "starting raycast" << startPoint;
     this->image = img;
-
-
-   // gbham(pos, pos + QPointF(30,25).toPoint());
-   // gbham(pos, pos + QPointF(20,50).toPoint());
-
-    bool DEBUG_RAY_DRAWING = false;
-    bool DEBUG_POLYGON_DRAWING = true;
-
 
     QPoint lastResultPoint;
     int maxDistance = 200;
     int lastManhattan = maxDistance;
 
     QPolygon fillPolygon;
+    QList<QPoint> recursionStartPoints;
 
-    for (int i = 0; i < 360; i+=1) {
+    int stepSize = 2;
+
+    QList<RayCastResult> recursiveResults;
+
+    for (int i = 0; i < 360; i+=stepSize) {
 
 
         int minDistance = 5;
@@ -46,7 +44,7 @@ void RayTrace::start(QImage * img, QPoint startPoint, bool recursion)
 
 
         int manhattan = lastResultPoint == /*not found*/ QPoint(-1, -1) ?lastManhattan :  (startPoint - lastResultPoint).manhattanLength();
-        if(recursion && i > 2 && lastResultPoint != NOT_FOUND && qAbs(lastManhattan - manhattan) > 20)
+        if(recursionDepth > 0 && i > stepSize*2 && lastResultPoint != NOT_FOUND && qAbs(lastManhattan - manhattan) > 20)
         {
             QPoint beforeLastPoint = fillPolygon[fillPolygon.length()-2];
             QPointF firstMidpoint = QPointF(startPoint+beforeLastPoint)/2.0;
@@ -54,16 +52,11 @@ void RayTrace::start(QImage * img, QPoint startPoint, bool recursion)
 
             if((startPoint - center).manhattanLength() > 20)
             {
-                qDebug() << "center" << center << " start Point: " << startPoint << " lastResultPoint " << lastResultPoint;
-                QPainter paint(image);
-                paint.setPen(Qt::green);
-                paint.setBrush(Qt::green);
-                paint.drawEllipse(center,5,5);
-                paint.end();
-                start(img,center, false);
+                //qDebug() << "center" << center << " start Point: " << startPoint << " lastResultPoint " << lastResultPoint;
+                recursionStartPoints << center;
+
+                recursiveResults.append(start(img,center, recursionDepth-1));
             }
-
-
         }
 
         lastManhattan = manhattan;
@@ -80,43 +73,70 @@ void RayTrace::start(QImage * img, QPoint startPoint, bool recursion)
         }
     }
 
-    if(DEBUG_RAY_DRAWING)
+    QList<QPolygon> fillPolygons;
+    fillPolygons << fillPolygon;
+
+    for (const RayCastResult &result : recursiveResults) {
+        fillPolygons << result.fillPolygons();
+        recursionStartPoints << result.recursionStartPoints();
+    }
+
+    RayCastResult result(fillPolygons,recursionStartPoints);
+    return result;
+
+
+}
+
+void RayTrace::debugDrawResult(QImage *image, QPoint startPoint, const RayCastResult &result)
+{
+    bool DEBUG_DRAW_RAYS = true;
+    bool DEBUG_DRAW_POLYGON = false;
+    bool DEBUG_DRAW_RECURSIVE_START_POINTS = true;
+
+    if(DEBUG_DRAW_RAYS)
     {
-        for (QPoint p: qAsConst(fillPolygon)) {
-                QPainter paint(image);
-                paint.setPen(Qt::red);
-                paint.drawLine(startPoint,p);
-                paint.end();
+        for (QPolygon fillPolygon : result.fillPolygons()) {
+            for (QPoint p: qAsConst(fillPolygon)) {
+                    QPainter paint(image);
+                    paint.setPen(Qt::red);
+                    paint.drawLine(startPoint,p);
+                    paint.end();
+            }
         }
 
     }
 
-    if(DEBUG_POLYGON_DRAWING)
+    if(DEBUG_DRAW_POLYGON)
     {
-        QPainter paint(image);
-        paint.setPen(Qt::red);
-        paint.setBrush(Qt::red);
-        paint.drawPolygon(fillPolygon);
-        paint.end();
+         for (const QPolygon &fillPolygon : result.fillPolygons()) {
+            QPainter paint(image);
+            paint.setPen(Qt::red);
+            paint.setBrush(Qt::red);
+            paint.drawPolygon(fillPolygon);
+            paint.end();
+        }
     }
 
+    if(DEBUG_DRAW_RECURSIVE_START_POINTS)
+    {
+        for (QPoint p: qAsConst(result.recursionStartPoints())) {
+            QPainter paint(image);
+            paint.setPen(Qt::green);
+            paint.setBrush(Qt::green);
+            paint.drawEllipse(p,5,5);
+            paint.end();
+
+        }
+    }
 
 }
 
 /* signum function */
-int sgn(int x)
+int RayTrace::sgn(int x)
 {
     if (x > 0) return +1;
     if (x < 0) return -1;
     return 0;
-}
-
-void RayTrace::setPixel(int x, int y)
-{
-    if(image != nullptr)
-    {
-        image->setPixel(x,y,QColor(Qt::red).rgba());
-    }
 }
 
 bool RayTrace::checkIfLineArt(int x, int y)

@@ -19,10 +19,12 @@ MainWindow::~MainWindow()
 
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent),  ui(new Ui::MainWindow), scribbleArea(new ScribbleArea(this))
+    : QMainWindow(parent),  ui(new Ui::MainWindow)
 {
 
     ui->setupUi(this);
+
+    this->scribbleArea =  ui->scribbleArea;
 
 
     createActions();

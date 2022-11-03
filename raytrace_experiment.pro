@@ -3,6 +3,7 @@ requires(qtConfig(filedialog))
 qtHaveModule(printsupport): QT += printsupport
 
 HEADERS       = \
+                RayCastResult.h \
                 mainwindow.h \
                 raytrace.h \
                 scribblearea.h

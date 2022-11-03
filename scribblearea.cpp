@@ -78,7 +78,8 @@ void ScribbleArea::mousePressEvent(QMouseEvent *event)
         QPoint point = event->pos();
         connect(testAction,&QAction::triggered,[this,point](){
 
-            this->raytrace->start(&(this->image),point,true);
+            auto res = this->raytrace->start(&(this->image),point,1);
+            this->raytrace->debugDrawResult(&image,point,res);
             this->update();
 
         });
