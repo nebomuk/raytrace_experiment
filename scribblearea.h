@@ -45,6 +45,7 @@ private:
     int myPenWidth = 5;
     QColor myPenColor = Qt::blue;
     QImage image;
+    QImage debugDrawImage;
     QPoint lastPoint;
     RayTrace * raytrace;
 

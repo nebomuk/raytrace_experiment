@@ -20,6 +20,7 @@ ScribbleArea::ScribbleArea(QWidget *parent)
 
     raytrace = new RayTrace(this);
 
+
 }
 
 bool ScribbleArea::openImage(const QString &fileName)
@@ -61,6 +62,7 @@ void ScribbleArea::setPenWidth(int newWidth)
 void ScribbleArea::clearImage()
 {
     image.fill(qRgb(255, 255, 255));
+    debugDrawImage.fill(Qt::transparent);
     modified = true;
     update();
 }
@@ -79,7 +81,7 @@ void ScribbleArea::mousePressEvent(QMouseEvent *event)
         connect(testAction,&QAction::triggered,[this,point](){
 
             auto res = this->raytrace->start(&(this->image),point,1);
-            this->raytrace->debugDrawResult(&image,point,res);
+            this->raytrace->debugDrawResult(&debugDrawImage,point,res);
             this->update();
 
         });
@@ -114,6 +116,7 @@ void ScribbleArea::paintEvent(QPaintEvent *event)
     QRect dirtyRect = event->rect();
    // painter.drawImage(QPoint(0,0),image);
     painter.drawImage(dirtyRect, image, dirtyRect);
+    painter.drawImage(0,0,debugDrawImage);
 }
 
 void ScribbleArea::resizeEvent(QResizeEvent *event)
@@ -122,6 +125,7 @@ void ScribbleArea::resizeEvent(QResizeEvent *event)
         int newWidth = qMax(width() + 128, image.width());
         int newHeight = qMax(height() + 128, image.height());
         resizeImage(&image, QSize(newWidth, newHeight));
+
         update();
     }
     QWidget::resizeEvent(event);
@@ -146,11 +150,20 @@ void ScribbleArea::resizeImage(QImage *image, const QSize &newSize)
     if (image->size() == newSize)
         return;
 
-    QImage newImage(newSize, QImage::Format_RGB32);
+    QImage newImage(newSize, QImage::Format_ARGB32_Premultiplied);
     newImage.fill(qRgb(255, 255, 255));
     QPainter painter(&newImage);
     painter.drawImage(QPoint(0, 0), *image);
+
+    debugDrawImage = QImage(newSize, QImage::Format_ARGB32_Premultiplied);
+    debugDrawImage.fill(qRgba(0,0,0,0));
+
+    painter.drawImage(0,0,debugDrawImage);
+
+    painter.end();
+
     *image = newImage;
+
 }
 
 void ScribbleArea::print()
