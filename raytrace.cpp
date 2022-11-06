@@ -1,5 +1,5 @@
 #include "raytrace.h"
-#include "RayCastResult.h"
+#include "raycastresult.h"
 
 #include <QImage>
 
@@ -8,6 +8,7 @@
 #include <QtDebug>
 #include <QtMath>
 #include <QThread>
+#include <QImage>
 
 RayTrace::RayTrace(QObject *parent)
     : QObject{parent}
@@ -18,54 +19,53 @@ RayTrace::RayTrace(QObject *parent)
 const QPoint NOT_FOUND = QPoint(-1,-1);
 
 
-RayCastResult RayTrace::start(QImage * img, QPoint startPoint, int recursionDepth)
+RayCastResult RayTrace::start(const QImage * img, QPoint startPoint, RayTraceConfig config)
 {
     qDebug() << "starting raycast" << startPoint;
-    this->image = img;
 
     QPoint lastResultPoint;
-    int maxDistance = 200;
-    int lastManhattan = maxDistance;
+    int lastManhattan = config.maxRayLength;
 
     QPolygon fillPolygon;
     QList<QPoint> recursionStartPoints;
 
-    int stepSize = 2;
-
     QList<RayCastResult> recursiveResults;
 
-    for (int i = 0; i < 360; i+=stepSize) {
-
-
-        int minDistance = 5;
+    for (int i = 0; i < 360; i+=config.stepSize) {
         qreal sine = qSin(qDegreesToRadians((qreal)i));
         qreal cosine = qCos(qDegreesToRadians((qreal)i));
 
 
 
-        int manhattan = lastResultPoint == /*not found*/ QPoint(-1, -1) ?lastManhattan :  (startPoint - lastResultPoint).manhattanLength();
-        if(recursionDepth > 0 && i > stepSize*2 && lastResultPoint != NOT_FOUND && qAbs(lastManhattan - manhattan) > 20)
+        int manhattan = lastResultPoint == NOT_FOUND ?lastManhattan :  (startPoint - lastResultPoint).manhattanLength();
+        if(config.recursionDepth > 0 &&
+                i > config.stepSize*2 &&
+                fillPolygon.size() > 15 &&
+                lastResultPoint != NOT_FOUND &&
+                qAbs(lastManhattan - manhattan) > config.minRayDifferenceForRecursion)
         {
             QPoint beforeLastPoint = fillPolygon[fillPolygon.length()-2];
-            QPointF firstMidpoint = QPointF(startPoint+beforeLastPoint)/2.0;
-            QPoint center = ((beforeLastPoint+ firstMidpoint)/2.0).toPoint();
+            QPointF firstMidpoint = QLineF(startPoint,beforeLastPoint).center();
+            QPoint center = QLineF(beforeLastPoint,firstMidpoint).center().toPoint();
 
-            if((startPoint - center).manhattanLength() > 20)
+            if(!checkIfLineArt(img, center.x(),center.y()) &&  (startPoint - center).manhattanLength() > config.minRecursionRayLength)
             {
                 //qDebug() << "center" << center << " start Point: " << startPoint << " lastResultPoint " << lastResultPoint;
                 recursionStartPoints << center;
-
-                recursiveResults.append(start(img,center, recursionDepth-1));
+                RayTraceConfig configCopy = config;
+                configCopy.recursionDepth -=1;
+               RayCastResult res = start(img,center, configCopy);
+                recursiveResults.append(res);
             }
         }
 
         lastManhattan = manhattan;
 
-        int actualDistance = lastResultPoint.isNull() ? maxDistance : qBound(minDistance, manhattan+10, maxDistance);
+        int actualDistance = lastResultPoint.isNull() ? config.maxRayLength : qBound(config.minRayLength, manhattan+10,config.maxRayLength);
 
         //qDebug() << "manhattan " <<  manhattan <<"actual: "<< actualDistance;
 
-        lastResultPoint = gbham(startPoint, startPoint + QPointF(sine*actualDistance,cosine*actualDistance).toPoint());
+        lastResultPoint = gbham(img, startPoint, startPoint + QPointF(sine*actualDistance,cosine*actualDistance).toPoint());
 
         if(lastResultPoint != NOT_FOUND)
         {
@@ -87,50 +87,6 @@ RayCastResult RayTrace::start(QImage * img, QPoint startPoint, int recursionDept
 
 }
 
-void RayTrace::debugDrawResult(QImage *image, QPoint startPoint, const RayCastResult &result)
-{
-    bool DEBUG_DRAW_RAYS = true;
-    bool DEBUG_DRAW_POLYGON = false;
-    bool DEBUG_DRAW_RECURSIVE_START_POINTS = true;
-
-    if(DEBUG_DRAW_RAYS)
-    {
-        for (QPolygon fillPolygon : result.fillPolygons()) {
-            for (QPoint p: qAsConst(fillPolygon)) {
-                    QPainter paint(image);
-                    paint.setPen(Qt::red);
-                    paint.drawLine(startPoint,p);
-                    paint.end();
-            }
-        }
-
-    }
-
-    if(DEBUG_DRAW_POLYGON)
-    {
-         for (const QPolygon &fillPolygon : result.fillPolygons()) {
-            QPainter paint(image);
-            paint.setPen(Qt::red);
-            paint.setBrush(Qt::red);
-            paint.drawPolygon(fillPolygon);
-            paint.end();
-        }
-    }
-
-    if(DEBUG_DRAW_RECURSIVE_START_POINTS)
-    {
-        for (QPoint p: qAsConst(result.recursionStartPoints())) {
-            QPainter paint(image);
-            paint.setPen(Qt::green);
-            paint.setBrush(Qt::green);
-            paint.drawEllipse(p,5,5);
-            paint.end();
-
-        }
-    }
-
-}
-
 /* signum function */
 int RayTrace::sgn(int x)
 {
@@ -139,7 +95,7 @@ int RayTrace::sgn(int x)
     return 0;
 }
 
-bool RayTrace::checkIfLineArt(int x, int y)
+bool RayTrace::checkIfLineArt(const QImage * image, int x, int y)
 {
     if(image == nullptr)
     {
@@ -147,13 +103,17 @@ bool RayTrace::checkIfLineArt(int x, int y)
     }
 
     QRgb color= image->pixel(x,y);
+    //QRgb color2 = image->pixel(x+1,y-1);
+   // QRgb color3 = image->pixel(x-1,y+1);
     QRgb colorWhite = qRgb(255,255,255);
 
-    return color != colorWhite && color != QColor(Qt::red).rgba() && color != QColor(Qt::green).rgba();
+    return color != colorWhite;
+            //|| color2 != colorWhite;
+            //|| color3 != colorWhite;
 
 }
 
-QPoint RayTrace::gbham(int xstart, int ystart, int xend, int yend)
+QPoint RayTrace::gbham(const QImage * image, int xstart, int ystart, int xend, int yend)
 /*--------------------------------------------------------------
  * Bresenham-Algorithmus: Linien auf Rastergeräten zeichnen
  *
@@ -203,7 +163,7 @@ QPoint RayTrace::gbham(int xstart, int ystart, int xend, int yend)
     {
         return NOT_FOUND;
     }
-    else if(checkIfLineArt(x,y)){
+    else if(checkIfLineArt(image,x,y)){
         return QPoint(x,y);
     }
     //setPixel(x,y);
@@ -232,7 +192,7 @@ QPoint RayTrace::gbham(int xstart, int ystart, int xend, int yend)
         {
             return NOT_FOUND;
         }
-        else if(checkIfLineArt(x,y)){
+        else if(checkIfLineArt(image, x,y)){
             return QPoint(x,y);
         }
         //setPixel(x, y);
@@ -241,8 +201,8 @@ QPoint RayTrace::gbham(int xstart, int ystart, int xend, int yend)
     return NOT_FOUND;
 }
 
-QPoint RayTrace::gbham(QPoint start, QPoint end)
+QPoint RayTrace::gbham(const QImage* image, QPoint start, QPoint end)
 {
-    return this->gbham(start.x(),start.y(),end.x(),end.y());
+    return this->gbham(image, start.x(),start.y(),end.x(),end.y());
 }
 

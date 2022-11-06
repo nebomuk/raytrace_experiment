@@ -10,6 +10,7 @@
 #include <QMenuBar>
 #include <QMessageBox>
 #include <QCloseEvent>
+#include <QCursor>
 
 
 MainWindow::~MainWindow()
@@ -87,6 +88,25 @@ void MainWindow::penWidth()
         scribbleArea->setPenWidth(newWidth);
 }
 
+void MainWindow::setFillEnabled(bool b)
+{
+    if(b)
+    {
+        this->setCursor(QCursor(QPixmap(":ic_bucket_fill"),2,16));
+
+    }
+    else
+    {
+        this->setCursor(QCursor());
+    }
+    scribbleArea->setFillEnabled(b);
+}
+
+void MainWindow::openSettings()
+{
+    preferences_->show();
+}
+
 void MainWindow::createActions()
 //! [13] //! [14]
 {
@@ -117,16 +137,23 @@ void MainWindow::createActions()
     penWidthAct = new QAction(tr("Pen &Width..."), this);
     connect(penWidthAct, &QAction::triggered, this, &MainWindow::penWidth);
 
-    clearScreenAct = new QAction(tr("&Clear Screen"), this);
-    clearScreenAct->setShortcut(tr("Ctrl+L"));
-    connect(clearScreenAct, &QAction::triggered,
+    ui->actionClear_Screen->setShortcut(tr("Ctrl+L"));
+    connect(ui->actionClear_Screen, &QAction::triggered,
             scribbleArea, &ScribbleArea::clearImage);
+
+    connect(ui->actionClear_DebugDraw,&QAction::triggered,scribbleArea,&ScribbleArea::clearDebugDraw);
+
+    connect(ui->actionFill,&QAction::toggled,this,&MainWindow::setFillEnabled);
+
+    connect(ui->actionPreferences,&QAction::triggered,this,&MainWindow::openSettings);
 
 }
 
 void MainWindow::createMenus()
 //! [15] //! [16]
 {
+    preferences_ = new Preferences(this);
+
     saveAsMenu = new QMenu(tr("&Save As"), this);
     for (QAction *action : qAsConst(saveAsActs))
         saveAsMenu->addAction(action);
@@ -142,7 +169,6 @@ void MainWindow::createMenus()
     optionMenu->addAction(penColorAct);
     optionMenu->addAction(penWidthAct);
     optionMenu->addSeparator();
-    optionMenu->addAction(clearScreenAct);
 
     helpMenu = new QMenu(tr("&Help"), this);
 

@@ -1,3 +1,4 @@
+#include "debugdraw.h"
 #include "scribblearea.h"
 
 #include <QMouseEvent>
@@ -10,6 +11,8 @@
 #include <QPrintDialog>
 #include <QtDebug>
 #include <QMenu>
+#include <QSettings>
+#include <QVariant>
 #endif
 #endif
 
@@ -17,9 +20,6 @@ ScribbleArea::ScribbleArea(QWidget *parent)
     : QWidget(parent)
 {
     setAttribute(Qt::WA_StaticContents);
-
-    raytrace = new RayTrace(this);
-
 
 }
 
@@ -67,27 +67,44 @@ void ScribbleArea::clearImage()
     update();
 }
 
+void ScribbleArea::clearDebugDraw()
+{
+    debugDrawImage.fill(Qt::transparent);
+    modified = true;
+    update();
+}
+
 void ScribbleArea::mousePressEvent(QMouseEvent *event)
 {
     if (event->button() == Qt::LeftButton) {
         lastPoint = event->pos();
-        scribbling = true;
-    }
-    else if(event->button() == Qt::RightButton)
-    {
-        QMenu * menu = new QMenu(this);
-        QAction* testAction = menu->addAction("test");
-        QPoint point = event->pos();
-        connect(testAction,&QAction::triggered,[this,point](){
 
-            auto res = this->raytrace->start(&(this->image),point,1);
-            this->raytrace->debugDrawResult(&debugDrawImage,point,res);
+        if(fillEnabled_)
+        {
+            auto point = event->pos();
+            RayTrace raytrace;
+            RayTraceConfig config = QSettings().value("ray_trace_config",QVariant::fromValue(RayTraceConfig())).value<RayTraceConfig>();
+            RayCastResult res = raytrace.start(&(this->image),point,config);
+            DebugDraw debugDraw;
+
+            if(QSettings().value("debug_draw_polygon",true).toBool()){
+                debugDraw.polygon(&debugDrawImage,point,res);
+
+            }
+            if(QSettings().value("debug_draw_rays",false).toBool()){
+                debugDraw.rays(&debugDrawImage,point,res);
+
+            }
+            if(QSettings().value("debug_draw_recursive_start_points",false).toBool()){
+                debugDraw.recursiveStartPoints(&debugDrawImage,point,res);
+
+            }
             this->update();
-
-        });
-        menu->popup(event->globalPos());
-        connect(menu,&QMenu::aboutToHide,menu, &QMenu::deleteLater);
-
+        }
+        else
+        {
+            scribbling = true;
+        }
     }
 }
 
@@ -164,6 +181,11 @@ void ScribbleArea::resizeImage(QImage *image, const QSize &newSize)
 
     *image = newImage;
 
+}
+
+void ScribbleArea::setFillEnabled(bool newFillEnabled)
+{
+    fillEnabled_ = newFillEnabled;
 }
 
 void ScribbleArea::print()

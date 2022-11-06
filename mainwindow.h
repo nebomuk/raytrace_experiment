@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <preferences.h>
 
 namespace Ui {
 class MainWindow;
@@ -31,6 +32,8 @@ private slots:
     void save();
     void penColor();
     void penWidth();
+    void setFillEnabled(bool b);
+    void openSettings();
 
 private:
     void createActions();
@@ -43,6 +46,8 @@ private:
 
     ScribbleArea *scribbleArea;
 
+    Preferences * preferences_;
+
     QMenu *saveAsMenu;
     QMenu *fileMenu;
     QMenu *optionMenu;
@@ -54,7 +59,6 @@ private:
     QAction *penColorAct;
     QAction *penWidthAct;
     QAction *printAct;
-    QAction *clearScreenAct;
 
 };
 //! [0]

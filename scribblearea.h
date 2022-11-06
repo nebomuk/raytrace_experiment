@@ -25,9 +25,13 @@ public:
     QColor penColor() const { return myPenColor; }
     int penWidth() const { return myPenWidth; }
 
+    void setFillEnabled(bool newFillEnabled);
+
 public slots:
     void clearImage();
+    void clearDebugDraw();
     void print();
+
 
 protected:
     void mousePressEvent(QMouseEvent *event) override;
@@ -43,11 +47,11 @@ private:
     bool modified = false;
     bool scribbling = false;
     int myPenWidth = 5;
+    bool fillEnabled_ = false;
     QColor myPenColor = Qt::blue;
     QImage image;
     QImage debugDrawImage;
     QPoint lastPoint;
-    RayTrace * raytrace;
 
 };
 //! [0]

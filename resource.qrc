@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file alias="ic_bucket_fill">ic_bucket_fill.png</file>
+    </qresource>
+</RCC>
