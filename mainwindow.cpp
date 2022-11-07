@@ -11,6 +11,8 @@
 #include <QMessageBox>
 #include <QCloseEvent>
 #include <QCursor>
+#include <QSettings>
+#include <QFileInfo>
 
 
 MainWindow::~MainWindow()
@@ -50,7 +52,19 @@ void MainWindow::open()
         QString fileName = QFileDialog::getOpenFileName(this,
                                    tr("Open File"), QDir::currentPath());
         if (!fileName.isEmpty())
+        {
+            QSettings().setValue("recent_file",fileName);
             scribbleArea->openImage(fileName);
+        }
+    }
+}
+
+void MainWindow::openRecent()
+{
+    QString recentFile = QSettings().value("recent_file",QString()).toString();
+    if(QFileInfo::exists(recentFile))
+    {
+        scribbleArea->openImage(recentFile);
     }
 }
 //! [4]
@@ -114,6 +128,10 @@ void MainWindow::createActions()
     openAct->setShortcuts(QKeySequence::Open);
     connect(openAct, &QAction::triggered, this, &MainWindow::open);
 
+    openRecentAct = new QAction(tr("Open Recent"), this);
+    openRecentAct->setShortcuts(QKeySequence::Open);
+    connect(openRecentAct, &QAction::triggered, this, &MainWindow::openRecent);
+
     const QList<QByteArray> imageFormats = QImageWriter::supportedImageFormats();
     for (const QByteArray &format : imageFormats) {
         QString text = tr("%1...").arg(QString::fromLatin1(format).toUpper());
@@ -160,6 +178,7 @@ void MainWindow::createMenus()
 
     fileMenu = new QMenu(tr("&File"), this);
     fileMenu->addAction(openAct);
+    fileMenu->addAction(openRecentAct);
     fileMenu->addMenu(saveAsMenu);
     fileMenu->addAction(printAct);
     fileMenu->addSeparator();

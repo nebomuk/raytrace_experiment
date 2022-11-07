@@ -14,49 +14,14 @@
    <string>Dialog</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="7" column="0">
-    <widget class="QSpinBox" name="minRecursionRayLength">
-     <property name="maximum">
-      <number>500</number>
-     </property>
-    </widget>
-   </item>
-   <item row="5" column="0">
-    <widget class="QSpinBox" name="minRayLength">
-     <property name="maximum">
-      <number>200</number>
-     </property>
-    </widget>
-   </item>
-   <item row="3" column="1">
-    <widget class="QLabel" name="label">
+   <item row="6" column="1">
+    <widget class="QLabel" name="label_3">
      <property name="text">
-      <string>recursionDepth</string>
+      <string>minRayLength</string>
      </property>
     </widget>
    </item>
-   <item row="4" column="1">
-    <widget class="QLabel" name="label_2">
-     <property name="text">
-      <string>stepSize</string>
-     </property>
-    </widget>
-   </item>
-   <item row="6" column="0">
-    <widget class="QSpinBox" name="maxRayLength">
-     <property name="maximum">
-      <number>5000</number>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="0" colspan="2">
-    <widget class="QCheckBox" name="debugDrawRays">
-     <property name="text">
-      <string>debug draw rays</string>
-     </property>
-    </widget>
-   </item>
-   <item row="9" column="0" colspan="2">
+   <item row="10" column="0" colspan="2">
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
@@ -72,10 +37,72 @@
      </property>
     </widget>
    </item>
+   <item row="4" column="1">
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>recursionDepth</string>
+     </property>
+    </widget>
+   </item>
+   <item row="7" column="0">
+    <widget class="QSpinBox" name="maxRayLength">
+     <property name="maximum">
+      <number>5000</number>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="1">
+    <widget class="QLabel" name="label_2">
+     <property name="text">
+      <string>stepSize</string>
+     </property>
+    </widget>
+   </item>
+   <item row="8" column="1">
+    <widget class="QLabel" name="label_5">
+     <property name="text">
+      <string>minRecursionRayLength</string>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="0">
+    <widget class="QSpinBox" name="minRayLength">
+     <property name="maximum">
+      <number>200</number>
+     </property>
+    </widget>
+   </item>
    <item row="0" column="0" colspan="2">
     <widget class="QCheckBox" name="debugDrawPolygon">
      <property name="text">
       <string>debug draw polygon</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0" colspan="2">
+    <widget class="QCheckBox" name="debugDrawRays">
+     <property name="text">
+      <string>debug draw rays</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="0">
+    <widget class="QSpinBox" name="recursionDepth">
+     <property name="maximum">
+      <number>10</number>
+     </property>
+    </widget>
+   </item>
+   <item row="9" column="0">
+    <widget class="QSpinBox" name="minRayDifferenceForRecursion"/>
+   </item>
+   <item row="5" column="0">
+    <widget class="QSpinBox" name="stepSize">
+     <property name="minimum">
+      <number>1</number>
+     </property>
+     <property name="maximum">
+      <number>50</number>
      </property>
     </widget>
    </item>
@@ -86,51 +113,31 @@
      </property>
     </widget>
    </item>
-   <item row="5" column="1">
-    <widget class="QLabel" name="label_3">
-     <property name="text">
-      <string>minRayLength</string>
-     </property>
-    </widget>
-   </item>
-   <item row="3" column="0">
-    <widget class="QSpinBox" name="recursionDepth">
-     <property name="maximum">
-      <number>10</number>
-     </property>
-    </widget>
-   </item>
-   <item row="4" column="0">
-    <widget class="QSpinBox" name="stepSize">
-     <property name="minimum">
-      <number>1</number>
-     </property>
-     <property name="maximum">
-      <number>50</number>
-     </property>
-    </widget>
-   </item>
-   <item row="8" column="0">
-    <widget class="QSpinBox" name="minRayDifferenceForRecursion"/>
-   </item>
-   <item row="6" column="1">
+   <item row="7" column="1">
     <widget class="QLabel" name="label_4">
      <property name="text">
       <string>maxRayLength</string>
      </property>
     </widget>
    </item>
-   <item row="7" column="1">
-    <widget class="QLabel" name="label_5">
-     <property name="text">
-      <string>minRecursionRayLength</string>
+   <item row="8" column="0">
+    <widget class="QSpinBox" name="minRecursionRayLength">
+     <property name="maximum">
+      <number>500</number>
      </property>
     </widget>
    </item>
-   <item row="8" column="1">
+   <item row="9" column="1">
     <widget class="QLabel" name="label_6">
      <property name="text">
       <string>minRayDifferenceForRecursion</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="0">
+    <widget class="QCheckBox" name="debugDrawGaps">
+     <property name="text">
+      <string>debug draw gaps</string>
      </property>
     </widget>
    </item>

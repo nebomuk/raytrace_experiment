@@ -39,6 +39,8 @@ void Preferences::loadFromSettings()
     ui->debugDrawPolygon->setChecked(QSettings().value("debug_draw_polygon",true).toBool());
     ui->debugDrawRays->setChecked(QSettings().value("debug_draw_rays",false).toBool());
     ui->debugDrawRecursiveStartPoints->setChecked(QSettings().value("debug_draw_recursive_start_points",false).toBool());
+    ui->debugDrawGaps->setChecked(QSettings().value("debug_draw_gaps",false).toBool());
+
 
 }
 
@@ -57,6 +59,8 @@ void Preferences::writeSettings()
     QSettings().setValue("debug_draw_polygon",ui->debugDrawPolygon->isChecked());
     QSettings().setValue("debug_draw_rays",ui->debugDrawRays->isChecked());
     QSettings().setValue("debug_draw_recursive_start_points",ui->debugDrawRecursiveStartPoints->isChecked());
+    QSettings().setValue("debug_draw_gaps",ui->debugDrawGaps->isChecked());
+
 
 
 }

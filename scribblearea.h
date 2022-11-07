@@ -46,7 +46,7 @@ private:
 
     bool modified = false;
     bool scribbling = false;
-    int myPenWidth = 5;
+    int myPenWidth = 2;
     bool fillEnabled_ = false;
     QColor myPenColor = Qt::blue;
     QImage image;

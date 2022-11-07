@@ -29,6 +29,7 @@ protected:
 
 private slots:
     void open();
+    void openRecent();
     void save();
     void penColor();
     void penWidth();
@@ -54,6 +55,7 @@ private:
     QMenu *helpMenu;
 
     QAction *openAct;
+    QAction *openRecentAct;
     QList<QAction *> saveAsActs;
     QAction *exitAct;
     QAction *penColorAct;

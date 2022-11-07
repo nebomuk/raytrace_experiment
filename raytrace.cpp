@@ -16,18 +16,28 @@ RayTrace::RayTrace(QObject *parent)
 
 }
 
-const QPoint NOT_FOUND = QPoint(-1,-1);
-
+const QPoint NULL_POINT = QPoint(-1,-1);
 
 RayCastResult RayTrace::start(const QImage * img, QPoint startPoint, RayTraceConfig config)
 {
+    RayCastResult res = startInternal(img,startPoint,config);
+    return res;
+
+}
+
+
+
+RayCastResult RayTrace::startInternal(const QImage * img, QPoint startPoint, RayTraceConfig config)
+{
     qDebug() << "starting raycast" << startPoint;
 
-    QPoint lastResultPoint;
+    QPoint lastResultPoint = NULL_POINT;
     int lastManhattan = config.maxRayLength;
 
+    QPoint lastGapStartPoint = NULL_POINT;
+
     QPolygon fillPolygon;
-    QList<QPoint> recursionStartPoints;
+    QList<QLine> gapLines;
 
     QList<RayCastResult> recursiveResults;
 
@@ -37,11 +47,11 @@ RayCastResult RayTrace::start(const QImage * img, QPoint startPoint, RayTraceCon
 
 
 
-        int manhattan = lastResultPoint == NOT_FOUND ?lastManhattan :  (startPoint - lastResultPoint).manhattanLength();
+        int manhattan = lastResultPoint == NULL_POINT ?lastManhattan :  (startPoint - lastResultPoint).manhattanLength();
         if(config.recursionDepth > 0 &&
                 i > config.stepSize*2 &&
                 fillPolygon.size() > 15 &&
-                lastResultPoint != NOT_FOUND &&
+                lastResultPoint != NULL_POINT &&
                 qAbs(lastManhattan - manhattan) > config.minRayDifferenceForRecursion)
         {
             QPoint beforeLastPoint = fillPolygon[fillPolygon.length()-2];
@@ -51,7 +61,6 @@ RayCastResult RayTrace::start(const QImage * img, QPoint startPoint, RayTraceCon
             if(!checkIfLineArt(img, center.x(),center.y()) &&  (startPoint - center).manhattanLength() > config.minRecursionRayLength)
             {
                 //qDebug() << "center" << center << " start Point: " << startPoint << " lastResultPoint " << lastResultPoint;
-                recursionStartPoints << center;
                 RayTraceConfig configCopy = config;
                 configCopy.recursionDepth -=1;
                RayCastResult res = start(img,center, configCopy);
@@ -67,21 +76,55 @@ RayCastResult RayTrace::start(const QImage * img, QPoint startPoint, RayTraceCon
 
         lastResultPoint = gbham(img, startPoint, startPoint + QPointF(sine*actualDistance,cosine*actualDistance).toPoint());
 
-        if(lastResultPoint != NOT_FOUND)
+        if(lastResultPoint != NULL_POINT)
         {
             fillPolygon << lastResultPoint;
+            if(fillPolygon.size() > 2)
+            {
+                if(lastGapStartPoint != NULL_POINT)
+                {
+                    gapLines << QLine(lastGapStartPoint, lastResultPoint);
+                    lastGapStartPoint = NULL_POINT;
+                }
+            }
+        }
+        else if (lastResultPoint == NULL_POINT && lastGapStartPoint == NULL_POINT &&fillPolygon.size() > 2)
+        {// FIXME first point not found handling
+            lastGapStartPoint = fillPolygon.last();
+
         }
     }
 
-    QList<QPolygon> fillPolygons;
-    fillPolygons << fillPolygon;
+//    QList<QLine>::iterator gi = gapLines.begin();
+//    while (gi != gapLines.end()) {
+//        QPolygon linePoly = QPolygon() << (*gi).p1() << (*gi).p2();
+//        if(fillPolygon.intersects(linePoly))
+//        {
+//            gi = gapLines.erase(gi); // only way iterator works for removing
+//        }
+//        else
+//        {
+//            gi++;
+//        }
+//    }
 
-    for (const RayCastResult &result : recursiveResults) {
-        fillPolygons << result.fillPolygons();
-        recursionStartPoints << result.recursionStartPoints();
+    QList<QPolygon> fillPolygonList;
+    QList<QPoint> allStartPoints;
+    fillPolygonList << fillPolygon;
+    allStartPoints << startPoint;
+
+
+
+
+    for (const RayCastResult &result : qAsConst(recursiveResults)) {
+        fillPolygonList << result.fillPolygons();
+        allStartPoints << result.startPoints();
+        gapLines << result.gapLines();
     }
 
-    RayCastResult result(fillPolygons,recursionStartPoints);
+
+
+    RayCastResult result(fillPolygonList,allStartPoints,gapLines);
     return result;
 
 
@@ -161,7 +204,7 @@ QPoint RayTrace::gbham(const QImage * image, int xstart, int ystart, int xend, i
     err = deltafastdirection / 2;
     if(!image->valid(x,y))
     {
-        return NOT_FOUND;
+        return NULL_POINT;
     }
     else if(checkIfLineArt(image,x,y)){
         return QPoint(x,y);
@@ -190,7 +233,7 @@ QPoint RayTrace::gbham(const QImage * image, int xstart, int ystart, int xend, i
         }
         if(!image->valid(x,y))
         {
-            return NOT_FOUND;
+            return NULL_POINT;
         }
         else if(checkIfLineArt(image, x,y)){
             return QPoint(x,y);
@@ -198,7 +241,7 @@ QPoint RayTrace::gbham(const QImage * image, int xstart, int ystart, int xend, i
         //setPixel(x, y);
 
     }
-    return NOT_FOUND;
+    return NULL_POINT;
 }
 
 QPoint RayTrace::gbham(const QImage* image, QPoint start, QPoint end)

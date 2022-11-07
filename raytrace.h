@@ -15,12 +15,17 @@ public:
     explicit RayTrace(QObject *parent = nullptr);
 
 public slots:
+
     RayCastResult start(const QImage *image, QPoint startPoint, RayTraceConfig config);
+
 
 
 signals:
 
 private:
+    RayCastResult startInternal(const QImage *image, QPoint startPoint, RayTraceConfig config);
+
+
     QPoint gbham(const QImage * image,int xstart, int ystart, int xend, int yend);
 
     QPoint gbham(const QImage * image,QPoint start, QPoint end);
@@ -30,7 +35,6 @@ private:
     void setPixel(int x, int y);
 
     bool checkIfLineArt(const QImage *image, int x, int y);
-
 
 
 

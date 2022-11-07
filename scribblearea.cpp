@@ -88,15 +88,19 @@ void ScribbleArea::mousePressEvent(QMouseEvent *event)
             DebugDraw debugDraw;
 
             if(QSettings().value("debug_draw_polygon",true).toBool()){
-                debugDraw.polygon(&debugDrawImage,point,res);
+                debugDraw.polygon(&debugDrawImage,res);
 
             }
             if(QSettings().value("debug_draw_rays",false).toBool()){
-                debugDraw.rays(&debugDrawImage,point,res);
+                debugDraw.rays(&debugDrawImage,res);
 
             }
             if(QSettings().value("debug_draw_recursive_start_points",false).toBool()){
-                debugDraw.recursiveStartPoints(&debugDrawImage,point,res);
+                debugDraw.startPoints(&debugDrawImage,res);
+
+            }
+            if(QSettings().value("debug_draw_gaps",false).toBool()){
+                debugDraw.gaps(&debugDrawImage,res);
 
             }
             this->update();
