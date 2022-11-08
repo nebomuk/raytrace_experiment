@@ -52,6 +52,7 @@
    <addaction name="actionPreferences"/>
    <addaction name="actionClear_Screen"/>
    <addaction name="actionClear_DebugDraw"/>
+   <addaction name="actionReset_Zoom"/>
   </widget>
   <action name="actionFill">
    <property name="checkable">
@@ -80,6 +81,11 @@
   <action name="actionClear_DebugDraw">
    <property name="text">
     <string>Clear Debug</string>
+   </property>
+  </action>
+  <action name="actionReset_Zoom">
+   <property name="text">
+    <string>Reset Zoom</string>
    </property>
   </action>
  </widget>

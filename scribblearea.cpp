@@ -13,6 +13,7 @@
 #include <QMenu>
 #include <QSettings>
 #include <QVariant>
+#include <QMessageBox>
 #endif
 #endif
 
@@ -74,36 +75,55 @@ void ScribbleArea::clearDebugDraw()
     update();
 }
 
+void ScribbleArea::startRayTraycing(const QPoint &point)
+{
+    RayTrace raytrace;
+    RayTraceConfig config = QSettings().value("ray_trace_config",QVariant::fromValue(RayTraceConfig())).value<RayTraceConfig>();
+
+    QImage combinedImage = this->image.copy();
+    QPainter p(&combinedImage);
+    p.drawImage(combinedImage.rect(), debugDrawImage);
+    p.end();
+    RayCastResult res = raytrace.start(&combinedImage,point,config);
+    DebugDraw debugDraw;
+
+    if(QSettings().value("debug_draw_polygon",true).toBool()){
+        debugDraw.polygon(&debugDrawImage,res);
+
+    }
+    if(QSettings().value("debug_draw_rays",false).toBool()){
+        debugDraw.rays(&debugDrawImage,res);
+
+    }
+    if(QSettings().value("debug_draw_recursive_start_points",false).toBool()){
+        debugDraw.startPoints(&debugDrawImage,res);
+
+    }
+    if(QSettings().value("debug_draw_gaps",false).toBool()){
+        debugDraw.gaps(&debugDrawImage,res);
+
+    }
+    this->update();
+}
+
 void ScribbleArea::mousePressEvent(QMouseEvent *event)
 {
+    if(!qFuzzyCompare(scale,1.0))
+    {
+        int ret = QMessageBox::information(this, tr("Reset zoom"),
+                                       tr("Drawing and filling not allowed when zoomed"),
+                                       QMessageBox::Ok);
+        return;
+
+    }
+
     if (event->button() == Qt::LeftButton) {
         lastPoint = event->pos();
 
         if(fillEnabled_)
         {
             auto point = event->pos();
-            RayTrace raytrace;
-            RayTraceConfig config = QSettings().value("ray_trace_config",QVariant::fromValue(RayTraceConfig())).value<RayTraceConfig>();
-            RayCastResult res = raytrace.start(&(this->image),point,config);
-            DebugDraw debugDraw;
-
-            if(QSettings().value("debug_draw_polygon",true).toBool()){
-                debugDraw.polygon(&debugDrawImage,res);
-
-            }
-            if(QSettings().value("debug_draw_rays",false).toBool()){
-                debugDraw.rays(&debugDrawImage,res);
-
-            }
-            if(QSettings().value("debug_draw_recursive_start_points",false).toBool()){
-                debugDraw.startPoints(&debugDrawImage,res);
-
-            }
-            if(QSettings().value("debug_draw_gaps",false).toBool()){
-                debugDraw.gaps(&debugDrawImage,res);
-
-            }
-            this->update();
+            startRayTraycing(point);
         }
         else
         {
@@ -134,6 +154,8 @@ void ScribbleArea::mouseReleaseEvent(QMouseEvent *event)
 void ScribbleArea::paintEvent(QPaintEvent *event)
 {
     QPainter painter(this);
+    painter.translate(translation);
+    painter.scale(scale,scale);
     QRect dirtyRect = event->rect();
    // painter.drawImage(QPoint(0,0),image);
     painter.drawImage(dirtyRect, image, dirtyRect);
@@ -150,6 +172,19 @@ void ScribbleArea::resizeEvent(QResizeEvent *event)
         update();
     }
     QWidget::resizeEvent(event);
+}
+
+void ScribbleArea::wheelEvent(QWheelEvent *event)
+{
+    auto delta = event->angleDelta().y();
+    scale +=(delta/120);
+    if(scale < 0)
+    {
+        scale = 1.0;
+    }
+    translation = delta <= 0.0 ? QPointF() :  - this->mapFromGlobal(event->globalPosition().toPoint());
+    update();
+
 }
 
 void ScribbleArea::drawLineTo(const QPoint &endPoint)
@@ -208,4 +243,11 @@ void ScribbleArea::print()
         painter.drawImage(0, 0, image);
     }
 #endif // QT_CONFIG(printdialog)
+}
+
+void ScribbleArea::resetZoom()
+{
+    scale = 1.0;
+    translation = QPointF();
+    update();
 }

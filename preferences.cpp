@@ -35,6 +35,8 @@ void Preferences::loadFromSettings()
     ui->minRayLength->setValue(config.minRayLength);
     ui->stepSize->setValue(config.stepSize);
     ui->maxRayLength->setValue(config.maxRayLength);
+    ui->maxConsecutiveRayLength->setValue(config.maxConsecutiveRayLength);
+
 
     ui->debugDrawPolygon->setChecked(QSettings().value("debug_draw_polygon",true).toBool());
     ui->debugDrawRays->setChecked(QSettings().value("debug_draw_rays",false).toBool());
@@ -53,6 +55,7 @@ void Preferences::writeSettings()
     config.minRayLength = ui->minRayLength->value();
     config.stepSize = ui->stepSize->value();
     config.maxRayLength = ui->maxRayLength->value();
+    config.maxConsecutiveRayLength = ui->maxConsecutiveRayLength->value();
     QSettings().setValue("ray_trace_config",QVariant::fromValue(config));
 
 

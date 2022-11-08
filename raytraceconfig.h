@@ -21,6 +21,7 @@ public :
     int maxRayLength = 200;
     int minRecursionRayLength = 20;
     int minRayDifferenceForRecursion = 20;
+    int maxConsecutiveRayLength = 10;
 
     friend QDataStream &operator<<(QDataStream &out, const RayTraceConfig &myObj);
 

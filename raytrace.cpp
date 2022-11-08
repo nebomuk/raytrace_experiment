@@ -27,12 +27,29 @@ RayCastResult RayTrace::start(const QImage * img, QPoint startPoint, RayTraceCon
 
 
 
+void RayTrace::removeGapsInsidePolygon(const QPolygon& fillPolygon, QList<QLine> * gapLinesPointer)
+{
+    QList<QLine>& gapLines = *gapLinesPointer;
+    QList<QLine>::iterator gi = gapLines.begin();
+    while (gi != gapLines.end()) {
+        QPolygon linePoly = QPolygon() << (*gi).p1() << (*gi).p2();
+        if(fillPolygon.intersects(linePoly))
+        {
+            gi = gapLines.erase(gi); // only way iterator works for removing
+        }
+        else
+        {
+            gi++;
+        }
+    }
+}
+
 RayCastResult RayTrace::startInternal(const QImage * img, QPoint startPoint, RayTraceConfig config)
 {
     qDebug() << "starting raycast" << startPoint;
 
     QPoint lastResultPoint = NULL_POINT;
-    int lastManhattan = config.maxRayLength;
+    int lastRayLength = config.maxRayLength;
 
     QPoint lastGapStartPoint = NULL_POINT;
 
@@ -46,13 +63,12 @@ RayCastResult RayTrace::startInternal(const QImage * img, QPoint startPoint, Ray
         qreal cosine = qCos(qDegreesToRadians((qreal)i));
 
 
-
-        int manhattan = lastResultPoint == NULL_POINT ?lastManhattan :  (startPoint - lastResultPoint).manhattanLength();
+        int rayLength = lastResultPoint == NULL_POINT ?lastRayLength :  qRound(QLineF(startPoint,lastResultPoint).length());
         if(config.recursionDepth > 0 &&
                 i > config.stepSize*2 &&
                 fillPolygon.size() > 15 &&
                 lastResultPoint != NULL_POINT &&
-                qAbs(lastManhattan - manhattan) > config.minRayDifferenceForRecursion)
+                qAbs(lastRayLength - rayLength) > config.minRayDifferenceForRecursion)
         {
             QPoint beforeLastPoint = fillPolygon[fillPolygon.length()-2];
             QPointF firstMidpoint = QLineF(startPoint,beforeLastPoint).center();
@@ -68,13 +84,13 @@ RayCastResult RayTrace::startInternal(const QImage * img, QPoint startPoint, Ray
             }
         }
 
-        lastManhattan = manhattan;
+        lastRayLength = rayLength;
 
-        int actualDistance = lastResultPoint.isNull() ? config.maxRayLength : qBound(config.minRayLength, manhattan+10,config.maxRayLength);
+        int nextRayMaxLength = lastResultPoint.isNull() ? config.maxRayLength : qBound(config.minRayLength, rayLength+10,config.maxRayLength);
 
         //qDebug() << "manhattan " <<  manhattan <<"actual: "<< actualDistance;
 
-        lastResultPoint = gbham(img, startPoint, startPoint + QPointF(sine*actualDistance,cosine*actualDistance).toPoint());
+        lastResultPoint = gbham(img, startPoint, startPoint + QPointF(sine*nextRayMaxLength,cosine*nextRayMaxLength).toPoint());
 
         if(lastResultPoint != NULL_POINT)
         {
@@ -95,18 +111,7 @@ RayCastResult RayTrace::startInternal(const QImage * img, QPoint startPoint, Ray
         }
     }
 
-//    QList<QLine>::iterator gi = gapLines.begin();
-//    while (gi != gapLines.end()) {
-//        QPolygon linePoly = QPolygon() << (*gi).p1() << (*gi).p2();
-//        if(fillPolygon.intersects(linePoly))
-//        {
-//            gi = gapLines.erase(gi); // only way iterator works for removing
-//        }
-//        else
-//        {
-//            gi++;
-//        }
-//    }
+    //removeGapsInsidePolygon(fillPolygon, &gapLines);
 
     QList<QPolygon> fillPolygonList;
     QList<QPoint> allStartPoints;

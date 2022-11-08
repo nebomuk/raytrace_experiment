@@ -31,6 +31,7 @@ public slots:
     void clearImage();
     void clearDebugDraw();
     void print();
+    void resetZoom();
 
 
 protected:
@@ -39,10 +40,12 @@ protected:
     void mouseReleaseEvent(QMouseEvent *event) override;
     void paintEvent(QPaintEvent *event) override;
     void resizeEvent(QResizeEvent *event) override;
+    void wheelEvent( QWheelEvent * event) override;
 
 private:
     void drawLineTo(const QPoint &endPoint);
     void resizeImage(QImage *image, const QSize &newSize);
+    void startRayTraycing(const QPoint& point);
 
     bool modified = false;
     bool scribbling = false;
@@ -52,6 +55,9 @@ private:
     QImage image;
     QImage debugDrawImage;
     QPoint lastPoint;
+
+    qreal scale = 1.0;
+    QPointF translation;
 
 };
 //! [0]

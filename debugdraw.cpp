@@ -12,10 +12,10 @@ void DebugDraw::polygon(QImage *image, const RayCastResult &result)
 {
     for (const QPolygon &fillPolygon : result.fillPolygons()) {
        QPainter paint(image);
-       paint.setRenderHints(QPainter::Antialiasing );
+       //paint.setRenderHints(QPainter::Antialiasing );
        paint.setPen(Qt::red);
-       paint.setBrush(Qt::red);
-       //paint.setBrush(QColor::fromHsv(50,220,220,120));
+       //paint.setBrush(Qt::red);
+       paint.setBrush(QColor::fromHsv(50,220,220,120));
        paint.drawPolygon(fillPolygon, Qt::WindingFill);
        paint.end();
    }

@@ -38,6 +38,7 @@ private:
 
 
 
+    void removeGapsInsidePolygon(const QPolygon &fillPolygon, QList<QLine> *gapLines);
 };
 
 #endif // RAYTRACE_H

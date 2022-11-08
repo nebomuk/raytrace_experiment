@@ -34,7 +34,12 @@ MainWindow::MainWindow(QWidget *parent)
     createMenus();
 
     setWindowTitle(tr("Krita Plugin Experiment"));
-    resize(500, 500);
+
+    QSettings settings;
+   restoreGeometry(settings.value("geometry").toByteArray());
+   restoreState(settings.value("windowState").toByteArray());
+
+    //resize(500, 500);
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
@@ -43,6 +48,11 @@ void MainWindow::closeEvent(QCloseEvent *event)
         event->accept();
     else
         event->ignore();
+
+    QSettings settings;
+    settings.setValue("geometry", saveGeometry());
+    settings.setValue("windowState", saveState());
+    QMainWindow::closeEvent(event);
 }
 
 void MainWindow::open()
@@ -162,6 +172,8 @@ void MainWindow::createActions()
     connect(ui->actionClear_DebugDraw,&QAction::triggered,scribbleArea,&ScribbleArea::clearDebugDraw);
 
     connect(ui->actionFill,&QAction::toggled,this,&MainWindow::setFillEnabled);
+
+    connect(ui->actionReset_Zoom,&QAction::triggered,scribbleArea,&ScribbleArea::resetZoom);
 
     connect(ui->actionPreferences,&QAction::triggered,this,&MainWindow::openSettings);
 
