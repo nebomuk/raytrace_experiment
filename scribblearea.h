@@ -26,6 +26,8 @@ public:
     int penWidth() const { return myPenWidth; }
 
     void setFillEnabled(bool newFillEnabled);
+    void setFloodFillEnabled(bool newFillEnabled);
+
 
 public slots:
     void clearImage();
@@ -51,6 +53,7 @@ private:
     bool scribbling = false;
     int myPenWidth = 2;
     bool fillEnabled_ = false;
+    bool floodFillEnabled_ = false;
     QColor myPenColor = Qt::blue;
     QImage image;
     QImage debugDrawImage;

@@ -34,6 +34,7 @@ private slots:
     void penColor();
     void penWidth();
     void setFillEnabled(bool b);
+    void setFloodFillEnabled(bool b);
     void openSettings();
 
 private:

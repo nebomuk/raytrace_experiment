@@ -16,7 +16,7 @@ public :
     }
 
     int recursionDepth = 1;
-    int stepSize = 1;
+    qreal stepSize = 1;
     int minRayLength = 5;
     int maxRayLength = 200;
     int minRecursionRayLength = 20;

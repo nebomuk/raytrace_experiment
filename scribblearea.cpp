@@ -14,6 +14,7 @@
 #include <QSettings>
 #include <QVariant>
 #include <QMessageBox>
+#include <QColor>
 #endif
 #endif
 
@@ -103,6 +104,10 @@ void ScribbleArea::startRayTraycing(const QPoint &point)
         debugDraw.gaps(&debugDrawImage,res);
 
     }
+    if(QSettings().value("debug_draw_flood_fill_points",false).toBool()){
+        debugDraw.floodFillPoints(&debugDrawImage,res);
+
+    }
     this->update();
 }
 
@@ -110,7 +115,7 @@ void ScribbleArea::mousePressEvent(QMouseEvent *event)
 {
     if(!qFuzzyCompare(scale,1.0))
     {
-        int ret = QMessageBox::information(this, tr("Reset zoom"),
+        QMessageBox::information(this, tr("Reset zoom"),
                                        tr("Drawing and filling not allowed when zoomed"),
                                        QMessageBox::Ok);
         return;
@@ -123,7 +128,13 @@ void ScribbleArea::mousePressEvent(QMouseEvent *event)
         if(fillEnabled_)
         {
             auto point = event->pos();
-            startRayTraycing(point);
+           startRayTraycing(point);
+        }
+        else if(floodFillEnabled_)
+        {
+            DebugDraw debugDraw;
+            debugDraw.floodFill(&image, &debugDrawImage,lastPoint,QColor(Qt::red));
+            update();
         }
         else
         {
@@ -225,6 +236,12 @@ void ScribbleArea::resizeImage(QImage *image, const QSize &newSize)
 void ScribbleArea::setFillEnabled(bool newFillEnabled)
 {
     fillEnabled_ = newFillEnabled;
+}
+
+void ScribbleArea::setFloodFillEnabled(bool newFillEnabled)
+{
+    floodFillEnabled_ = newFillEnabled;
+
 }
 
 void ScribbleArea::print()

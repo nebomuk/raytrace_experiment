@@ -9,19 +9,19 @@
 class RayCastResult
 {
 public:
-    RayCastResult(const QList<QPolygon> &fillPolygons, const QList<QPoint> &startPoints,const  QList<QLine> &gapLines);
+    RayCastResult(const QList<QPolygon> &fillPolygons, const QList<QPoint> &startPoints,const  QList<QPoint> &gapPoints);
 
     const QList<QPolygon> &fillPolygons() const;
 
     const QList<QPoint> &startPoints() const;
 
-    const QList<QLine> &gapLines() const;
+    const QList<QPoint> &gapPoints() const;
 
 private:
 
     QList<QPolygon> fillPolygons_;
     QList<QPoint> startPoints_;
-    QList<QLine> gapLines_;
+    QList<QPoint> gapPoints_;
 
 };
 
@@ -37,14 +37,14 @@ inline const QList<QPoint> &RayCastResult::startPoints() const
     return startPoints_;
 }
 
-inline const QList<QLine> &RayCastResult::gapLines() const
+inline const QList<QPoint> &RayCastResult::gapPoints() const
 {
-    return gapLines_;
+    return gapPoints_;
 }
 
-inline RayCastResult::RayCastResult(const QList<QPolygon> &fillPolygons, const QList<QPoint> &startPoints, const QList<QLine> &gapLines) : fillPolygons_(fillPolygons),
+inline RayCastResult::RayCastResult(const QList<QPolygon> &fillPolygons, const QList<QPoint> &startPoints, const QList<QPoint> &gapPoints) : fillPolygons_(fillPolygons),
     startPoints_(startPoints),
-    gapLines_(gapLines)
+    gapPoints_(gapPoints)
 {}
 
 

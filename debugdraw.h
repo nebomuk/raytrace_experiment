@@ -3,6 +3,7 @@
 
 #include "raycastresult.h"
 
+#include <QColor>
 #include <QObject>
 
 class DebugDraw : public QObject
@@ -19,6 +20,14 @@ public slots:
     void rays(QImage * image, const RayCastResult& result);
 
     void gaps(QImage * image, const RayCastResult& result);
+
+    void floodFillPoints(QImage * image, const RayCastResult& result);
+
+    void floodFill(const QImage * referenceImage,QImage * imageToDrawOn, QPoint seed, QColor color);
+
+
+
+ private:
 
 
 

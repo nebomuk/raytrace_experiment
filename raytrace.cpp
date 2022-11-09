@@ -51,16 +51,15 @@ RayCastResult RayTrace::startInternal(const QImage * img, QPoint startPoint, Ray
     QPoint lastResultPoint = NULL_POINT;
     int lastRayLength = config.maxRayLength;
 
-    QPoint lastGapStartPoint = NULL_POINT;
-
     QPolygon fillPolygon;
-    QList<QLine> gapLines;
+    QVector<QPoint> allResultPoints;
+    QList<QPoint> gapPoints;
 
     QList<RayCastResult> recursiveResults;
 
-    for (int i = 0; i < 360; i+=config.stepSize) {
-        qreal sine = qSin(qDegreesToRadians((qreal)i));
-        qreal cosine = qCos(qDegreesToRadians((qreal)i));
+    for (qreal i = 0; i < 360; i+=config.stepSize) {
+        qreal cosine = qSin(qDegreesToRadians((qreal)i));
+        qreal sine = qCos(qDegreesToRadians((qreal)i));
 
 
         int rayLength = lastResultPoint == NULL_POINT ?lastRayLength :  qRound(QLineF(startPoint,lastResultPoint).length());
@@ -86,28 +85,27 @@ RayCastResult RayTrace::startInternal(const QImage * img, QPoint startPoint, Ray
 
         lastRayLength = rayLength;
 
-        int nextRayMaxLength = lastResultPoint.isNull() ? config.maxRayLength : qBound(config.minRayLength, rayLength+10,config.maxRayLength);
+        int nextRayMaxLength = /*lastResultPoint == NULL_POINT ? config.maxRayLength :*/ qMax(config.minRayLength, lastRayLength +config.maxConsecutiveRayLength);
 
         //qDebug() << "manhattan " <<  manhattan <<"actual: "<< actualDistance;
 
         lastResultPoint = gbham(img, startPoint, startPoint + QPointF(sine*nextRayMaxLength,cosine*nextRayMaxLength).toPoint());
+        allResultPoints << lastResultPoint;
 
         if(lastResultPoint != NULL_POINT)
         {
             fillPolygon << lastResultPoint;
-            if(fillPolygon.size() > 2)
+            if(allResultPoints.size() > 2 && allResultPoints[allResultPoints.length()-2] == NULL_POINT)
             {
-                if(lastGapStartPoint != NULL_POINT)
-                {
-                    gapLines << QLine(lastGapStartPoint, lastResultPoint);
-                    lastGapStartPoint = NULL_POINT;
-                }
+                gapPoints << lastResultPoint;
             }
         }
-        else if (lastResultPoint == NULL_POINT && lastGapStartPoint == NULL_POINT &&fillPolygon.size() > 2)
-        {// FIXME first point not found handling
-            lastGapStartPoint = fillPolygon.last();
-
+        else if (lastResultPoint == NULL_POINT)
+        {
+            if(allResultPoints.size() > 2 && allResultPoints[allResultPoints.length()-2] != NULL_POINT)
+            {
+                gapPoints << allResultPoints[allResultPoints.length()-2];
+            }
         }
     }
 
@@ -124,12 +122,12 @@ RayCastResult RayTrace::startInternal(const QImage * img, QPoint startPoint, Ray
     for (const RayCastResult &result : qAsConst(recursiveResults)) {
         fillPolygonList << result.fillPolygons();
         allStartPoints << result.startPoints();
-        gapLines << result.gapLines();
+        gapPoints << result.gapPoints();
     }
 
 
 
-    RayCastResult result(fillPolygonList,allStartPoints,gapLines);
+    RayCastResult result(fillPolygonList,allStartPoints,gapPoints);
     return result;
 
 
@@ -153,9 +151,9 @@ bool RayTrace::checkIfLineArt(const QImage * image, int x, int y)
     QRgb color= image->pixel(x,y);
     //QRgb color2 = image->pixel(x+1,y-1);
    // QRgb color3 = image->pixel(x-1,y+1);
-    QRgb colorWhite = qRgb(255,255,255);
+    QRgb colorWhite = qRgb(200,200,200);
 
-    return color != colorWhite;
+    return color < colorWhite;
             //|| color2 != colorWhite;
             //|| color3 != colorWhite;
 

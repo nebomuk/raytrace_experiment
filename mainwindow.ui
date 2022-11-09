@@ -53,6 +53,7 @@
    <addaction name="actionClear_Screen"/>
    <addaction name="actionClear_DebugDraw"/>
    <addaction name="actionReset_Zoom"/>
+   <addaction name="actionFlood_Fill"/>
   </widget>
   <action name="actionFill">
    <property name="checkable">
@@ -86,6 +87,14 @@
   <action name="actionReset_Zoom">
    <property name="text">
     <string>Reset Zoom</string>
+   </property>
+  </action>
+  <action name="actionFlood_Fill">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Flood Fill</string>
    </property>
   </action>
  </widget>

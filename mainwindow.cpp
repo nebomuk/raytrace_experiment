@@ -56,11 +56,22 @@ void MainWindow::closeEvent(QCloseEvent *event)
 }
 
 void MainWindow::open()
-//! [3] //! [4]
 {
     if (maybeSave()) {
+
+
+        QString recent = QSettings().value("recent_file",QString()).toString();
+
+
+        QString path = QDir::currentPath();
+        if(!recent.isNull())
+        {
+            QFileInfo info(recent);
+            path = info.path();
+        }
+
         QString fileName = QFileDialog::getOpenFileName(this,
-                                   tr("Open File"), QDir::currentPath());
+                                   tr("Open File"), path);
         if (!fileName.isEmpty())
         {
             QSettings().setValue("recent_file",fileName);
@@ -77,31 +88,22 @@ void MainWindow::openRecent()
         scribbleArea->openImage(recentFile);
     }
 }
-//! [4]
 
-//! [5]
 void MainWindow::save()
-//! [5] //! [6]
 {
     QAction *action = qobject_cast<QAction *>(sender());
     QByteArray fileFormat = action->data().toByteArray();
     saveFile(fileFormat);
 }
-//! [6]
 
-//! [7]
 void MainWindow::penColor()
-//! [7] //! [8]
 {
     QColor newColor = QColorDialog::getColor(scribbleArea->penColor());
     if (newColor.isValid())
         scribbleArea->setPenColor(newColor);
 }
-//! [8]
 
-//! [9]
 void MainWindow::penWidth()
-//! [9] //! [10]
 {
     bool ok;
     int newWidth = QInputDialog::getInt(this, tr("Scribble"),
@@ -117,7 +119,8 @@ void MainWindow::setFillEnabled(bool b)
     if(b)
     {
         this->setCursor(QCursor(QPixmap(":ic_bucket_fill"),2,16));
-
+        ui->actionFlood_Fill->setChecked(false);
+        scribbleArea->setFloodFillEnabled(false);
     }
     else
     {
@@ -126,13 +129,27 @@ void MainWindow::setFillEnabled(bool b)
     scribbleArea->setFillEnabled(b);
 }
 
+void MainWindow::setFloodFillEnabled(bool b)
+{
+    if(b)
+    {
+        this->setCursor(QCursor(QPixmap(":ic_bucket_fill"),2,16));
+        ui->actionFill->setChecked(false);
+        scribbleArea->setFillEnabled(false);
+    }
+    else
+    {
+        this->setCursor(QCursor());
+    }
+    scribbleArea->setFloodFillEnabled(b);
+}
+
 void MainWindow::openSettings()
 {
     preferences_->show();
 }
 
 void MainWindow::createActions()
-//! [13] //! [14]
 {
     openAct = new QAction(tr("&Open..."), this);
     openAct->setShortcuts(QKeySequence::Open);
@@ -173,6 +190,9 @@ void MainWindow::createActions()
 
     connect(ui->actionFill,&QAction::toggled,this,&MainWindow::setFillEnabled);
 
+    connect(ui->actionFlood_Fill,&QAction::toggled,this,&MainWindow::setFloodFillEnabled);
+
+
     connect(ui->actionReset_Zoom,&QAction::triggered,scribbleArea,&ScribbleArea::resetZoom);
 
     connect(ui->actionPreferences,&QAction::triggered,this,&MainWindow::openSettings);
@@ -180,7 +200,6 @@ void MainWindow::createActions()
 }
 
 void MainWindow::createMenus()
-//! [15] //! [16]
 {
     preferences_ = new Preferences(this);
 
@@ -207,11 +226,8 @@ void MainWindow::createMenus()
     menuBar()->addMenu(optionMenu);
     menuBar()->addMenu(helpMenu);
 }
-//! [16]
 
-//! [17]
 bool MainWindow::maybeSave()
-//! [17] //! [18]
 {
     if (scribbleArea->isModified()) {
        QMessageBox::StandardButton ret;
@@ -227,11 +243,8 @@ bool MainWindow::maybeSave()
     }
     return true;
 }
-//! [18]
 
-//! [19]
 bool MainWindow::saveFile(const QByteArray &fileFormat)
-//! [19] //! [20]
 {
     QString initialPath = QDir::currentPath() + "/untitled." + fileFormat;
 
@@ -244,5 +257,4 @@ bool MainWindow::saveFile(const QByteArray &fileFormat)
         return false;
     return scribbleArea->saveImage(fileName, fileFormat.constData());
 }
-//! [20]
 
