@@ -1,4 +1,5 @@
 #include "debugdraw.h"
+#include "qdebug.h"
 
 #include <QLinkedList>
 #include <QPainter>
@@ -6,8 +7,8 @@
 #include <QVector>
 #include <deque>
 
-DebugDraw::DebugDraw(QObject *parent)
-    : QObject{parent}
+DebugDraw::DebugDraw(const QColor &penColor, const QColor &brushColor, QObject *parent)
+    : QObject{parent}, penColor_(penColor), brushColor_(brushColor)
 {
 
 }
@@ -21,22 +22,12 @@ void DebugDraw::polygon(QImage *image, const RayCastResult &result)
          }
              QPainter paint(image);
              //paint.setRenderHints(QPainter::Antialiasing );
-             paint.setPen(Qt::red);
+             paint.setPen(penColor_);
              //paint.setBrush(Qt::red);
-             paint.setBrush(QColor::fromHsv(50,220,220,120));
+             paint.setBrush(brushColor_);
              paint.drawPolygon(united, Qt::WindingFill);
+
              paint.end();
-
-
-//    for (const QPolygon &fillPolygon : result.fillPolygons()) {
-//       QPainter paint(image);
-//       //paint.setRenderHints(QPainter::Antialiasing );
-//       paint.setPen(Qt::red);
-//       //paint.setBrush(Qt::red);
-//       paint.setBrush(QColor::fromHsv(50,220,220,120));
-//       paint.drawPolygon(fillPolygon, Qt::WindingFill);
-//       paint.end();
-//   }
 }
 
 void DebugDraw::startPoints(QImage *image, const RayCastResult &result)
@@ -59,7 +50,7 @@ void DebugDraw::rays(QImage *image, const RayCastResult &result)
             QPainter paint(image);
             QColor color = QColor::fromHsv(i % 255,220,200);
 
-            paint.setPen(Qt::red);
+            paint.setPen(penColor_);
             paint.drawLine(result.startPoints()[i],fillPolygon[j]);
             paint.end();
         }
@@ -95,9 +86,9 @@ void DebugDraw::floodFillPoints(QImage *image, const RayCastResult &result)
 
       QPainter paint(image);
       //paint.setRenderHints(QPainter::Antialiasing );
-      paint.setPen(Qt::red);
+      paint.setPen(penColor_);
       //paint.setBrush(Qt::red);
-      paint.setBrush(QColor::fromHsv(50,220,220,120));
+      paint.setBrush(brushColor_);
       paint.drawPolygon(united, Qt::WindingFill);
       paint.end();
 }

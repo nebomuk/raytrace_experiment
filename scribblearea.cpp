@@ -23,6 +23,10 @@ ScribbleArea::ScribbleArea(QWidget *parent)
 {
     setAttribute(Qt::WA_StaticContents);
 
+    myPenColor = QSettings().value("pen_color",QColor(Qt::red)).value<QColor>();
+    brushColor_ = QSettings().value("brush_color",QColor(Qt::red)).value<QColor>();
+
+
 }
 
 bool ScribbleArea::openImage(const QString &fileName)
@@ -49,11 +53,6 @@ bool ScribbleArea::saveImage(const QString &fileName, const char *fileFormat)
         return true;
     }
     return false;
-}
-
-void ScribbleArea::setPenColor(const QColor &newColor)
-{
-    myPenColor = newColor;
 }
 
 void ScribbleArea::setPenWidth(int newWidth)
@@ -86,29 +85,38 @@ void ScribbleArea::startRayTraycing(const QPoint &point)
     p.drawImage(combinedImage.rect(), debugDrawImage);
     p.end();
     RayCastResult res = raytrace.start(&combinedImage,point,config);
-    DebugDraw debugDraw;
+    DebugDraw debugDraw(myPenColor,brushColor_);
 
-    if(QSettings().value("debug_draw_polygon",true).toBool()){
-        debugDraw.polygon(&debugDrawImage,res);
+    if(!res.fillPolygons().isEmpty())
+    {
+        if(QSettings().value("debug_draw_polygon",true).toBool()){
+            debugDraw.polygon(&debugDrawImage,res);
 
+        }
+        if(QSettings().value("debug_draw_rays",false).toBool()){
+            debugDraw.rays(&debugDrawImage,res);
+
+        }
+        if(QSettings().value("debug_draw_recursive_start_points",false).toBool()){
+            debugDraw.startPoints(&debugDrawImage,res);
+
+        }
+        if(QSettings().value("debug_draw_gaps",false).toBool()){
+            debugDraw.gaps(&debugDrawImage,res);
+
+        }
+        if(QSettings().value("debug_draw_flood_fill_points",false).toBool()){
+            debugDraw.floodFillPoints(&debugDrawImage,res);
+
+        }
+        this->update();
     }
-    if(QSettings().value("debug_draw_rays",false).toBool()){
-        debugDraw.rays(&debugDrawImage,res);
-
+    else
+    {
+        emit statusMessage(tr("could not fill the specified area, try somewhere else"));
     }
-    if(QSettings().value("debug_draw_recursive_start_points",false).toBool()){
-        debugDraw.startPoints(&debugDrawImage,res);
 
-    }
-    if(QSettings().value("debug_draw_gaps",false).toBool()){
-        debugDraw.gaps(&debugDrawImage,res);
 
-    }
-    if(QSettings().value("debug_draw_flood_fill_points",false).toBool()){
-        debugDraw.floodFillPoints(&debugDrawImage,res);
-
-    }
-    this->update();
 }
 
 void ScribbleArea::mousePressEvent(QMouseEvent *event)
@@ -132,8 +140,8 @@ void ScribbleArea::mousePressEvent(QMouseEvent *event)
         }
         else if(floodFillEnabled_)
         {
-            DebugDraw debugDraw;
-            debugDraw.floodFill(&image, &debugDrawImage,lastPoint,QColor(Qt::red));
+            DebugDraw debugDraw(myPenColor,brushColor_);
+            debugDraw.floodFill(&image, &debugDrawImage,lastPoint,brushColor_);
             update();
         }
         else
@@ -267,4 +275,21 @@ void ScribbleArea::resetZoom()
     scale = 1.0;
     translation = QPointF();
     update();
+}
+
+QColor ScribbleArea::brushColor() const
+{
+    return brushColor_;
+}
+
+void ScribbleArea::setBrushColor(const QColor &newBrushColor)
+{
+    QSettings().setValue("brush_color",newBrushColor);
+    brushColor_ = newBrushColor;
+}
+
+void ScribbleArea::setPenColor(const QColor &newColor)
+{
+    QSettings().setValue("pen_color",newColor);
+    myPenColor = newColor;
 }

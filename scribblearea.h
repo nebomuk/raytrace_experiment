@@ -25,8 +25,15 @@ public:
     QColor penColor() const { return myPenColor; }
     int penWidth() const { return myPenWidth; }
 
+    QColor brushColor() const;
+    void setBrushColor(const QColor &newBrushColor);
+
     void setFillEnabled(bool newFillEnabled);
     void setFloodFillEnabled(bool newFillEnabled);
+
+
+signals:
+    void statusMessage(QString str);
 
 
 public slots:
@@ -54,7 +61,8 @@ private:
     int myPenWidth = 2;
     bool fillEnabled_ = false;
     bool floodFillEnabled_ = false;
-    QColor myPenColor = Qt::blue;
+    QColor myPenColor;
+    QColor brushColor_;
     QImage image;
     QImage debugDrawImage;
     QPoint lastPoint;

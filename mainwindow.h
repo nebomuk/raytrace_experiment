@@ -32,10 +32,12 @@ private slots:
     void openRecent();
     void save();
     void penColor();
+    void brushColor();
     void penWidth();
     void setFillEnabled(bool b);
     void setFloodFillEnabled(bool b);
     void openSettings();
+    void showStatusMessage(QString str);
 
 private:
     void createActions();
@@ -60,6 +62,7 @@ private:
     QList<QAction *> saveAsActs;
     QAction *exitAct;
     QAction *penColorAct;
+     QAction *brushColorAct;
     QAction *penWidthAct;
     QAction *printAct;
 

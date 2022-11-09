@@ -113,9 +113,12 @@ RayCastResult RayTrace::startInternal(const QImage * img, QPoint startPoint, Ray
 
     QList<QPolygon> fillPolygonList;
     QList<QPoint> allStartPoints;
-    fillPolygonList << fillPolygon;
-    allStartPoints << startPoint;
 
+    if(fillPolygon.containsPoint(startPoint,Qt::WindingFill))
+    {
+        fillPolygonList << fillPolygon;
+        allStartPoints << startPoint;
+    }
 
 
 
@@ -151,7 +154,8 @@ bool RayTrace::checkIfLineArt(const QImage * image, int x, int y)
     QRgb color= image->pixel(x,y);
     //QRgb color2 = image->pixel(x+1,y-1);
    // QRgb color3 = image->pixel(x-1,y+1);
-    QRgb colorWhite = qRgb(200,200,200);
+    //QRgb colorWhite = qRgb(200,200,200);
+    QRgb colorWhite = qRgb(255,255,255);
 
     return color < colorWhite;
             //|| color2 != colorWhite;

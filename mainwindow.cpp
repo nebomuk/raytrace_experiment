@@ -39,6 +39,8 @@ MainWindow::MainWindow(QWidget *parent)
    restoreGeometry(settings.value("geometry").toByteArray());
    restoreState(settings.value("windowState").toByteArray());
 
+   connect(scribbleArea,SIGNAL(statusMessage(QString)),this,SLOT(showStatusMessage(QString)));
+
     //resize(500, 500);
 }
 
@@ -103,6 +105,13 @@ void MainWindow::penColor()
         scribbleArea->setPenColor(newColor);
 }
 
+void MainWindow::brushColor()
+{
+    QColor newColor = QColorDialog::getColor(scribbleArea->brushColor());
+    if (newColor.isValid())
+        scribbleArea->setBrushColor(newColor);
+}
+
 void MainWindow::penWidth()
 {
     bool ok;
@@ -149,6 +158,11 @@ void MainWindow::openSettings()
     preferences_->show();
 }
 
+void MainWindow::showStatusMessage(QString str)
+{
+    ui->statusbar->showMessage(str,5000);
+}
+
 void MainWindow::createActions()
 {
     openAct = new QAction(tr("&Open..."), this);
@@ -178,6 +192,9 @@ void MainWindow::createActions()
 
     penColorAct = new QAction(tr("&Pen Color..."), this);
     connect(penColorAct, &QAction::triggered, this, &MainWindow::penColor);
+
+    brushColorAct = new QAction(tr("&Brush Color..."), this);
+    connect(brushColorAct, &QAction::triggered, this, &MainWindow::brushColor);
 
     penWidthAct = new QAction(tr("Pen &Width..."), this);
     connect(penWidthAct, &QAction::triggered, this, &MainWindow::penWidth);
@@ -217,6 +234,7 @@ void MainWindow::createMenus()
 
     optionMenu = new QMenu(tr("&Options"), this);
     optionMenu->addAction(penColorAct);
+    optionMenu->addAction(brushColorAct);
     optionMenu->addAction(penWidthAct);
     optionMenu->addSeparator();
 

@@ -10,7 +10,7 @@ class DebugDraw : public QObject
 {
     Q_OBJECT
 public:
-    explicit DebugDraw(QObject *parent = nullptr);
+    explicit DebugDraw(const QColor& penColor, const QColor& brushColor, QObject *parent = nullptr);
 
 public slots:
     void polygon(QImage * image, const RayCastResult& result);
@@ -29,6 +29,8 @@ public slots:
 
  private:
 
+    QColor penColor_;
+    QColor brushColor_;
 
 
 
