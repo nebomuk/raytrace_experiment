@@ -70,6 +70,7 @@ private:
     qreal scale = 1.0;
     QPointF translation;
 
+    QImage createCombinedImage();
 };
 //! [0]
 

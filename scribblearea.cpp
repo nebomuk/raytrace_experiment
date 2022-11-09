@@ -75,15 +75,22 @@ void ScribbleArea::clearDebugDraw()
     update();
 }
 
+QImage ScribbleArea::createCombinedImage()
+{
+    QImage combinedImage = this->image.copy();
+    QPainter p(&combinedImage);
+    p.drawImage(combinedImage.rect(), debugDrawImage);
+    p.end();
+
+    return combinedImage;
+}
+
 void ScribbleArea::startRayTraycing(const QPoint &point)
 {
     RayTrace raytrace;
     RayTraceConfig config = QSettings().value("ray_trace_config",QVariant::fromValue(RayTraceConfig())).value<RayTraceConfig>();
 
-    QImage combinedImage = this->image.copy();
-    QPainter p(&combinedImage);
-    p.drawImage(combinedImage.rect(), debugDrawImage);
-    p.end();
+    QImage combinedImage = createCombinedImage();
     RayCastResult res = raytrace.start(&combinedImage,point,config);
     DebugDraw debugDraw(myPenColor,brushColor_);
 
@@ -141,7 +148,8 @@ void ScribbleArea::mousePressEvent(QMouseEvent *event)
         else if(floodFillEnabled_)
         {
             DebugDraw debugDraw(myPenColor,brushColor_);
-            debugDraw.floodFill(&image, &debugDrawImage,lastPoint,brushColor_);
+            QImage combinedImage = createCombinedImage();
+            debugDraw.floodFill(&combinedImage, &debugDrawImage,lastPoint,brushColor_);
             update();
         }
         else
