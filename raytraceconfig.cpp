@@ -5,6 +5,7 @@ QDataStream &operator<<(QDataStream &out, const RayTraceConfig &myObj)
 {
     out << myObj.maxRayLength << myObj.minRayLength << myObj.minRecursionRayLength \
         << myObj.minRayDifferenceForRecursion << myObj.recursionDepth << myObj.stepSize;
+    return out;
 }
 
 QDataStream &operator>>(QDataStream &in, RayTraceConfig &myObj)
