@@ -11,7 +11,9 @@ public :
 
     RayTraceConfig()
     {
+      #if QT_VERSION < 0x060000
       qRegisterMetaTypeStreamOperators<RayTraceConfig>();
+      #endif
 
     }
 
