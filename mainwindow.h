@@ -24,8 +24,13 @@ public:
 
     virtual ~MainWindow();
 
+signals:
+    void expandToolbar(bool);
+
+
 protected:
     void closeEvent(QCloseEvent *event) override;
+    bool eventFilter(QObject *obj, QEvent *event) override;
 
 private slots:
     void open();

@@ -214,6 +214,36 @@ void MainWindow::createActions()
 
     connect(ui->actionPreferences,&QAction::triggered,this,&MainWindow::openSettings);
 
+#ifdef Q_OS_ANDROID
+    // expand layout (for Android)
+    QLayout* lay = ui->toolBar->findChild<QLayout*>();
+
+   connect(this,SIGNAL(expandToolbar(bool)),lay,SLOT(setExpanded(bool)));
+   emit expandToolbar(true);
+
+   // install an event fitler that filters out the event that causes the toolbar to close automatically
+   ui->toolBar->installEventFilter(this);
+#endif
+
+}
+
+bool MainWindow::eventFilter(QObject *obj, QEvent *event)
+{
+    #ifdef Q_OS_ANDROID
+    if (obj == ui->toolBar) {
+            if (event->type() == QEvent::Leave) {
+                // do nothing
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return QMainWindow::eventFilter(obj, event);
+    }
+#else
+    return QMainWindow::eventFilter(obj, event);
+#endif
+
 }
 
 void MainWindow::createMenus()
