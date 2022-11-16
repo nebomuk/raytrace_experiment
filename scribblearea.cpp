@@ -209,7 +209,11 @@ void ScribbleArea::wheelEvent(QWheelEvent *event)
     {
         scale = 1.0;
     }
+#if QT_VERSION >= 0x051400
     translation = delta <= 0.0 ? QPointF() :  - this->mapFromGlobal(event->globalPosition().toPoint());
+#else
+    translation = delta <= 0.0 ? QPointF() :  - this->mapFromGlobal(event->globalPos());
+#endif
     update();
 
 }

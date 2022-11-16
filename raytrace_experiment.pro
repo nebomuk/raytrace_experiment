@@ -3,6 +3,7 @@ requires(qtConfig(filedialog))
 qtHaveModule(printsupport): QT += printsupport
 
 HEADERS       = \
+                calculate.h \
                 debugdraw.h \
                 mainwindow.h \
                 preferences.h \
@@ -11,6 +12,7 @@ HEADERS       = \
                 raytraceconfig.h \
                 scribblearea.h
 SOURCES       = main.cpp \
+                calculate.cpp \
                 debugdraw.cpp \
                 mainwindow.cpp \
                 preferences.cpp \
