@@ -214,6 +214,7 @@ void MainWindow::createActions()
 
     connect(ui->actionPreferences,&QAction::triggered,this,&MainWindow::openSettings);
 
+    // based on https://stackoverflow.com/questions/55930004/keep-qtoolbar-showing-always-all-items
 #ifdef Q_OS_ANDROID
     // expand layout (for Android)
     QLayout* lay = ui->toolBar->findChild<QLayout*>();

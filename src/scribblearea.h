@@ -17,6 +17,7 @@ public:
     ScribbleArea(QWidget *parent = nullptr);
 
     bool openImage(const QString &fileName);
+    bool openQImage(QImage image);
     bool saveImage(const QString &fileName, const char *fileFormat);
     void setPenColor(const QColor &newColor);
     void setPenWidth(int newWidth);

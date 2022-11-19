@@ -1,8 +1,9 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include "scribblearea.h"
 #include <QMainWindow>
-#include <preferences.h>
+#include "preferences.h"
 
 namespace Ui {
 class MainWindow;
@@ -10,7 +11,6 @@ class MainWindow;
 
 #include <QList>
 #include <QMainWindow>
-#include "raytrace.h"
 
 class ScribbleArea;
 
@@ -21,6 +21,7 @@ class MainWindow : public QMainWindow
 
 public:
     MainWindow(QWidget *parent = nullptr);
+    bool openQImage(const QImage & inputImage) { return scribbleArea->openQImage(inputImage);}
 
     virtual ~MainWindow();
 

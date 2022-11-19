@@ -1,28 +1,30 @@
+TEMPLATE = lib
+
 QT += widgets
 requires(qtConfig(filedialog))
 qtHaveModule(printsupport): QT += printsupport
 
 HEADERS       = \
-                calculate.h \
-                debugdraw.h \
-                mainwindow.h \
-                preferences.h \
-                raycastresult.h \
-                raytrace.h \
-                raytraceconfig.h \
-                scribblearea.h
-SOURCES       = main.cpp \
-                calculate.cpp \
-                debugdraw.cpp \
-                mainwindow.cpp \
-                preferences.cpp \
-                raytrace.cpp \
-                raytraceconfig.cpp \
-                scribblearea.cpp
+                src/debugdraw.h \
+                src/mainwindow.h \
+                src/preferences.h \
+                src/pythoninterop.h \
+                src/raycastresult.h \
+                src/raytrace.h \
+                src/raytraceconfig.h \
+                src/scribblearea.h
+SOURCES       = src/main.cpp \
+                src/debugdraw.cpp \
+                src/mainwindow.cpp \
+                src/preferences.cpp \
+                src/pythoninterop.cpp \
+                src/raytrace.cpp \
+                src/raytraceconfig.cpp \
+                src/scribblearea.cpp
 
 FORMS += \
-    mainwindow.ui \
-    preferences.ui
+    ui/mainwindow.ui \
+    ui/preferences.ui
 
 RESOURCES += \
     resource.qrc

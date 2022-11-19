@@ -43,6 +43,16 @@ bool ScribbleArea::openImage(const QString &fileName)
     return true;
 }
 
+bool ScribbleArea::openQImage(QImage inputImage)
+{
+    QSize newSize = inputImage.size().expandedTo(size());
+    resizeImage(&inputImage, newSize);
+    image = inputImage;
+    modified = false;
+    update();
+    return true;
+}
+
 bool ScribbleArea::saveImage(const QString &fileName, const char *fileFormat)
 {
     QImage visibleImage = image;
